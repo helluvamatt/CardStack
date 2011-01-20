@@ -54,7 +54,9 @@ public class CardView extends View implements SensorEventListener {
 		float y = c.getHeight() / 2;
 		
 		Matrix mMatrix = new Matrix();
-		
+		mMatrix.postRotate((float) mCardRotation);
+		mMatrix.postTranslate(x, y);
+		mMatrix.postScale(mCardWidth, mCardHeight);
 		c.drawBitmap(mDisplayedCard, mMatrix, null);
 		
 	}
