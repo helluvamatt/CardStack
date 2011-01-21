@@ -2,39 +2,41 @@ package com.schneenet.cardstack;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class CardView extends View implements SensorEventListener {
+public class CardView extends View {
 
 	public CardView(Context context) {
 		super(context);
-		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
+		
+		//TODO Load last view card and last size ratio
+		mCardSize = 1;
+		loadCard("");
 	}
 	
 	public void onPause() {
 		mWakeLock.release();
-		mSensorManager.unregisterListener(this);
 	}
 	
 	public void onResume() {
 		mWakeLock.acquire();
-		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+	}
+	
+	public void loadCard(String cid) {
+		//TODO Load a card from Database
+		//For now we are loading a blank
+		mDisplayedCard = BitmapFactory.decodeResource(this.getResources(), R.drawable.card_base);
+		
 	}
 
-	private SensorManager mSensorManager;
-	private Sensor mAccelerometer;
 	private PowerManager mPowerManager;
 	private WakeLock mWakeLock;
 	
@@ -44,49 +46,27 @@ public class CardView extends View implements SensorEventListener {
 	private float mCardHeight;
 	
 	private Bitmap mDisplayedCard;
-
+	
 	@Override
 	public void onDraw(Canvas c) {
 		mCardWidth = mDisplayedCard.getWidth() * mCardSize;
 		mCardHeight = mDisplayedCard.getWidth() * mCardSize;
 		
-		float x = c.getWidth() / 2;
-		float y = c.getHeight() / 2;
-		
 		Matrix mMatrix = new Matrix();
 		mMatrix.postRotate((float) mCardRotation);
-		mMatrix.postTranslate(x, y);
-		mMatrix.postScale(mCardWidth, mCardHeight);
+		mMatrix.postTranslate(c.getWidth() / 2 - mCardWidth / 2, c.getHeight() / 2 - mCardHeight / 2);
+		mMatrix.postScale(mCardSize, mCardSize);
 		c.drawBitmap(mDisplayedCard, mMatrix, null);
 		
-	}
-	
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		// Ensure we are an event from the Accelerometer
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-			// Handle Accelerometer orientation change 
-			double x = event.values[0];
-			double y = event.values[1];
-			if (x == 0) {
-				mCardRotation = 0;
-			} else {
-				mCardRotation = Math.tan(y / x);
-			}
-			this.invalidate();
-		}		
+		//TODO Add Button Resource
+		//TODO Draw Add Button
 	}
 	
 	@Override
 	public boolean onTouchEvent(final MotionEvent e) {
-		//TODO Handle swipe gestures, two finger zoom, two finger rotate, and tapping on the "Add" button
+		//TODO Handle swipe gestures and tapping on the "Add" button
 		
-		//queueEvent
 		return true;
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	}
 	
 }
